@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"myapp/app/models"
 
 	"github.com/revel/revel"
@@ -10,6 +11,12 @@ import (
 //Post struct is the one which will be used in this controller
 type Post struct {
 	*revel.Controller
+}
+
+//Names struct to return to Angular
+type Names struct {
+	ID   uint64 `json:"id"`
+	Name string `json:"name"`
 }
 
 //Index Returning the complete set of posts
@@ -53,4 +60,23 @@ func (c Post) Delete() revel.Result {
 //RedirectToPosts for testing purpose
 func (c Post) RedirectToPosts() revel.Result {
 	return c.Redirect("/posts")
+}
+
+//GetNames is used to return the values back to Angular
+func (c Post) GetNames() revel.Result {
+	fmt.Println("coming")
+	posts := []models.Post{}
+
+	result := DB.Order("id desc").Find(&posts)
+	err := result.Error
+	if err != nil {
+		println("Something terrible wrong")
+	}
+
+	names := []Names{}
+	for i := 0; i < len(posts); i++ {
+		fmt.Println(posts[i].Body)
+		names = append(names, Names{posts[i].Id, posts[i].Body})
+	}
+	return c.RenderJSON(names)
 }
